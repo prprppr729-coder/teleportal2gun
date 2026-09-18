@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Dark-Fusion Loading Screen</title>
+    <style>
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+            background-color: #08080a;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+            position: relative;
+        }
+        #particles-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 1;
+        }
+        .loading-container {
+            width: 550px; padding: 35px; border-radius: 12px;
+            background: rgba(16, 16, 18, 0.75);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            text-align: center; color: #fff;
+            position: relative; z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 6px solid #f1c40f;
+        }
+        h1 { margin: 0 0 5px 0; font-size: 26px; font-weight: 900; letter-spacing: 2px; color: #fff; }
+        .subtitle { margin: 0 0 25px 0; font-size: 11px; font-weight: 700; color: #f1c40f; letter-spacing: 3px; }
+        .welcome-text { font-size: 15px; margin-bottom: 20px; color: #e0e0e5; }
+        .map-box { background: rgba(10, 10, 12, 0.6); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px; font-size: 13px; color: #a0a0a5; }
+        .map-name { color: #529ceb; font-weight: bold; }
+        .progress-bg { width: 100%; height: 6px; background: #0c0c0e; border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+        .progress-bar { width: 25%; height: 100%; background: #f1c40f; border-radius: 4px; transition: width 0.4s ease; }
+        .status-text { font-size: 11px; color: #727277; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <script>
+        // =========================================================================
+        // 🎵 НАСТРОЙКА МУЗЫКИ ДЛЯ ЗАГРУЗКИ СЕРВЕРА (ВСТАВЛЯЙ СВОИ ССЫЛКИ СЮДА)
+        // =========================================================================
+        const track1 = "https://www.dropbox.com/scl/fi/kgqg7cd4s8x637yh59ton/24.-Troubled-Water.mp3?rlkey=mqfbs0r4e0p006g06unx917ba&dl=1"; // ТРЕК №1
+        const track2 = "https://www.dropbox.com/scl/fi/nwgx3326lhhnhpgu8rwqn/02.-Arrival.mp3?rlkey=qhatltwmb3mq8oj14lsnchhxl&dl=1"; // ТРЕК №2
+        // =========================================================================
+    </script>
+
+    <canvas id="particles-canvas"></canvas>
+
+    <div class="loading-container">
+        <h1 id="servername">DARK-FUSION REACTOR</h1>
+        <div class="subtitle">ИДЕТ ПОДКЛЮЧЕНИЕ</div>
+        
+        <div class="welcome-text" id="welcome">Добро пожаловать на проект!</div>
+        <div class="map-box">Локация сервера: <span class="map-name" id="mapname">gm_construct</span></div>
+        
+        <div class="progress-bg">
+            <div class="progress-bar" id="bar"></div>
+        </div>
+        <div class="status-text" id="status">Загрузка ресурсов...</div>
+    </div>
+
+    <!-- Наш динамический плеер без хардкодных путей -->
+    <audio id="bgmusic" autoplay></audio>
+
+    <script>
+        // Логика автоматического плейлиста по кругу
+        const playlist = [track1, track2];
+        let currentTrackIndex = 0;
+        const audio = document.getElementById("bgmusic");
+
+        function playTrack(index) {
+            if (!playlist[index] || playlist[index] === "") return;
+            audio.src = playlist[index];
+            audio.volume = 0.15; // Громкость (15%)
+            audio.play().catch(function(e) { console.log("Ждем взаимодействия"); });
+        }
+
+        audio.addEventListener("ended", function() {
+            currentTrackIndex = currentTrackIndex + 1;
+            if (currentTrackIndex >= playlist.length) {
+                currentTrackIndex = 0;
+            }
+            playTrack(currentTrackIndex);
+        });
+
+        // Запуск первой песни
+        playTrack(currentTrackIndex);
+
+        // Стабильный движок анимации созвездий (Твой старый вариант)
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let particles = [];
+        const maxParticles = 90; 
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 1.2; 
+                this.vy = (Math.random() - 0.5) * 1.2; 
+                this.radius = Math.random() * 2.5 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < maxParticles; i++) { particles.push(new Particle()); }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = 'rgba(82, 156, 235, ' + (1 - dist / 120) * 0.25 + ')';
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function GameDetails( servername, serverurl, mapname, maxplayers, steamid, gamemode ) {
+            document.getElementById("mapname").innerHTML = mapname;
+            if(servername !== "") { document.getElementById("servername").innerHTML = servername.toUpperCase(); }
+        }
+
+        function SetStatusChanged( status ) {
+            document.getElementById("status").innerHTML = status;
+            var bar = document.getElementById("bar");
+            if (status.includes("Workshop") || status.includes("Mounting")) { bar.style.width = "55%"; }
+            else if (status.includes("Sending") || status.includes("Resources")) { bar.style.width = "90%"; }
+        }
+    </script>
+</body>
+</html>
